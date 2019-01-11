@@ -1,0 +1,53 @@
+language: cpp
+os: linux
+
+matrix:
+  include:
+  - name: baseline
+    before_script:
+    - bash --version 
+    - echo "-- started before_script"
+    - ( exit 0 )
+    - echo "-- after exit 0"
+    - ( true )
+    - echo "-- after true"
+    - ( exit 1 )
+    - echo "-- after exit 1"
+    - ( false )
+    - echo "-- after false"
+    - echo "-- finish before_script"
+    script:
+    - echo "-- start script"
+    - |
+      echo "-- start block"
+      echo "-- finish block"
+    - echo "-- finish script"
+    after_script:
+    - echo "-- start after_script"
+    - echo "-- finish after_script"
+  - name: blocks_baseline
+    before_script:
+    - bash --version 
+    - echo "-- started before_script"
+    - echo "-- finish before_script"
+    script:
+    - echo "-- start script"
+    - |
+      echo "-- start block"
+      ( exit 0 )
+      echo "-- after exit 0"
+      ( true )
+      echo "-- after true"
+      ( exit 1 )
+      echo "-- after exit 1"
+      ( false )
+      echo "-- after false"
+      echo "-- finish block"
+    - echo "-- finish script"
+    after_script:
+    - echo "-- start after_script"
+    - echo "-- finish after_script"
+
+
+
+
