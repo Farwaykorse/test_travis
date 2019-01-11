@@ -65,10 +65,12 @@ matrix:
     before_script: # non-zero exit code: stops build
     - bash --version
     #- set -e # early errexit: exit 1 stops AND fails build, no error message
-    - ( set -e )
+    #- ( set -e ) # is contained, noeffect later on
     script: # non-zero exit code: fails build
     - echo "-- start script"
     - |
+      ( # subshell
+      set -e
       # block
       # set -e # same as early errexit
       echo "-- start block"
@@ -81,8 +83,13 @@ matrix:
       ( false )
       echo "-- after false"
       echo "-- finish block"
+      ) # end subshell
     - echo "-- finish script"
     after_script: # non-zero exit code: no effect
+    - echo "start after_script"
+    - |
+      ( exit 1 )
+      echo "after exit 1"
     - echo "-- full build completed"
 
 
