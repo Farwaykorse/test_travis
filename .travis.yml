@@ -3,64 +3,64 @@ os: linux
 
 matrix:
   include:
-#  - name: baseline
-#    before_script: # non-zero exit code: stops build
-#    - bash --version 
-#    - echo "-- started before_script"
-#    - ( exit 0 )
-#    - echo "-- after exit 0"
-#    - ( true ) # <--- stops build (trusty)
-#    - echo "-- after true"
-#    #- ( exit 1 ) # <--- stops build (trusty)
-#    #- echo "-- after exit 1"
-#    - ( false )
-#    - echo "-- after false"
-#    - echo "-- finish before_script"
-#    script: # non-zero exit code: fails build
-#    - echo "-- start script"
-#    - |
-#      echo "-- start block"
-#      echo "-- finish block"
-#    - echo "-- finish script"
-#    after_script: # non-zero exit code: no effect
-#    - echo "-- full build completed"
-#  - name: baseline exit in script
-#    before_script: # non-zero exit code: stops build
-#    - bash --version 
-#    - echo "-- started before_script"
-#    - echo "-- finish before_script"
-#    script: # non-zero exit code: fails build
-#    - echo "-- start script"
-#    - ( exit 0 )
-#    - echo "-- after exit 0"
-#    - ( true )
-#    - echo "-- after true" # <-- shows error and continues
-#    - ( exit 1 )
-#    - echo "-- after exit 1" # <-- shows error and continues
-#    - ( false )
-#    - echo "-- after false"
-#    - echo "-- finish script"
-#    after_script: # non-zero exit code: no effect
-#    - echo "-- full build completed"
-#  - name: blocks_baseline # broken, should fail
-#    before_script: # non-zero exit code: stops build
-#    - bash --version 
-#    script: # non-zero exit code: fails build
-#    - echo "-- start script"
-#    - |
-#      echo "-- start block"
-#      ( exit 0 )
-#      echo "-- after exit 0"
-#      ( true )
-#      echo "-- after true"
-#      ( exit 1 )
-#      echo "-- after exit 1"
-#      ( false )
-#      echo "-- after false"
-#      echo "-- finish block"
-#    - echo "-- finish script"
-#    after_script: # non-zero exit code: no effect
-#    - echo "-- full build completed"
+  - name: baseline
+    before_script: # non-zero exit code: stops build
+    - bash --version 
+    - echo "-- started before_script"
+    - ( exit 0 )
+    - echo "-- after exit 0"
+    - ( true ) # <--- stops build (trusty)
+    - echo "-- after true"
+    #- ( exit 1 ) # <--- stops build (trusty)
+    #- echo "-- after exit 1"
+    - ( false )
+    - echo "-- after false"
+    - echo "-- finish before_script"
+    script: # non-zero exit code: fails build
+    - echo "-- start script"
+    - |
+      echo "-- start block"
+      echo "-- finish block"
+    - echo "-- finish script"
+    after_script: # non-zero exit code: no effect
+    - echo "-- full build completed"
+  - name: baseline exit in script
+    before_script: # non-zero exit code: stops build
+    - bash --version 
+    - echo "-- started before_script"
+    - echo "-- finish before_script"
+    script: # non-zero exit code: fails build
+    - echo "-- start script"
+    - ( exit 0 )
+    - echo "-- after exit 0"
+    - ( true )
+    - echo "-- after true" # <-- shows error and continues
+    - ( exit 1 )
+    - echo "-- after exit 1" # <-- shows error and continues
+    - ( false )
+    - echo "-- after false"
+    - echo "-- finish script"
+    after_script: # non-zero exit code: no effect
+    - echo "-- full build completed"
+  - name: blocks_baseline # broken, should fail
+    before_script: # non-zero exit code: stops build
+    - bash --version 
+    script: # non-zero exit code: fails build
+    - echo "-- start script"
+    - |
+      echo "-- start block"
+      ( exit 0 )
+      echo "-- after exit 0"
+      ( true )
+      echo "-- after true"
+      ( exit 1 )
+      echo "-- after exit 1"
+      ( false )
+      echo "-- after false"
+      echo "-- finish block"
+    - echo "-- finish script"
+    after_script: # non-zero exit code: no effect
+    - echo "-- full build completed"
   - name: blocks_errexit
     before_script: # non-zero exit code: stops build
     - bash --version
@@ -88,7 +88,7 @@ matrix:
     after_script: # non-zero exit code: no effect
     - echo "start after_script"
     - |
-      ( exit 1 )
+      ( exit 1 ) # ignored when set -e in subshell
       echo "after exit 1"
     - echo "-- full build completed"
 
