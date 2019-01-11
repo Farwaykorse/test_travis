@@ -9,26 +9,21 @@ matrix:
     - echo "-- started before_script"
     - ( exit 0 )
     - echo "-- after exit 0"
-    - ( true ) # <--- stops build (trusty)
+    - ( true )
     - echo "-- after true"
     #- ( exit 1 ) # <--- stops build (trusty)
     #- echo "-- after exit 1"
-    - ( false )
+    - ( false ) # <--- stops build (trusty)
     - echo "-- after false"
     - echo "-- finish before_script"
     script: # non-zero exit code: fails build
-    - echo "-- start script"
-    - |
-      echo "-- start block"
-      echo "-- finish block"
     - echo "-- finish script"
     after_script: # non-zero exit code: no effect
     - echo "-- full build completed"
+
   - name: baseline exit in script
     before_script: # non-zero exit code: stops build
     - bash --version 
-    - echo "-- started before_script"
-    - echo "-- finish before_script"
     script: # non-zero exit code: fails build
     - echo "-- start script"
     - ( exit 0 )
@@ -42,7 +37,8 @@ matrix:
     - echo "-- finish script"
     after_script: # non-zero exit code: no effect
     - echo "-- full build completed"
-  - name: blocks_baseline # broken, should fail
+
+  - name: blocks_baseline # ignores error inside block
     before_script: # non-zero exit code: stops build
     - bash --version 
     script: # non-zero exit code: fails build
@@ -61,18 +57,42 @@ matrix:
     - echo "-- finish script"
     after_script: # non-zero exit code: no effect
     - echo "-- full build completed"
-  - name: blocks_errexit
+
+  - name: blocks_early_errexit # broken
     before_script: # non-zero exit code: stops build
     - bash --version
-    #- set -e # early errexit: exit 1 stops AND fails build, no error message
-    #- ( set -e ) # is contained, noeffect later on
+    - set -e # early errexit: exit 1 stops AND fails build, no error message
+    - echo "-- finish before_script"
+    script: # non-zero exit code: fails build
+    - echo "-- start script"
+    - |
+      # block
+      # set -e # same as early errexit
+      echo "-- start block"
+      ( exit 0 )
+      echo "-- after exit 0"
+      ( true )
+      echo "-- after true"
+      ( exit 1 )
+      echo "-- after exit 1"
+      ( false )
+      echo "-- after false"
+      echo "-- finish block"
+    - echo "-- finish script"
+    after_script: # non-zero exit code: no effect
+    - echo "-- full build completed"
+
+  - name: blocks_errexit # works correctly
+    before_script: # non-zero exit code: stops build
+    - bash --version
+    - ( set -e ) # is contained, noeffect later on
+    - echo "-- finish before_script"
     script: # non-zero exit code: fails build
     - echo "-- start script"
     - |
       ( # subshell
       set -e
       # block
-      # set -e # same as early errexit
       echo "-- start block"
       ( exit 0 )
       echo "-- after exit 0"
