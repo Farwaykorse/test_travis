@@ -157,7 +157,6 @@ script:
   # Build/install libraries
   pushd ${VCPKG_DIR}
   ./vcpkg install ms-gsl
-  ./vcpkg install gtest
   popd
 - |
   # Update installed libraries
@@ -184,4 +183,3 @@ before_cache:
 cache:
   directories:
   - ~/tools/.cache
-
