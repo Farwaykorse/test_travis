@@ -169,6 +169,8 @@ script:
       ./vcpkg upgrade --no-dry-run
     fi
   ); popd
+- cat /Users/travis/tools/vcpkg/buildtrees/ms-gsl/config-x64-osx-dbg-out.log
+- cat /Users/travis/tools/vcpkg/buildtrees/ms-gsl/config-x64-osx-dbg-err.log
 
 ##====--------------------------------------------------------------------====##
 before_cache:
