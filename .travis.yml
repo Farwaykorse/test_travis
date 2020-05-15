@@ -29,7 +29,6 @@ jobs:
     - CC:  gcc-9
     - CXX: g++-9
     - MACOSX_DEPLOYMENT_TARGET: '10.12' # minimum supported: xcode9 image
-    install: skip
     before_script: skip
     script: skip
     after_script: skip
