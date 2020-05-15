@@ -166,3 +166,16 @@ script:
     fi
   ); popd
 
+##====--------------------------------------------------------------------====##
+before_cache:
+- |
+  # Select files for caching
+  mkdir -p ~/tools/.cache/vcpkg
+  if [[ "${TRAVIS_BUILD_STAGE_NAME}" =~ .*dependencies$ ]]; then
+    cp -u -t ~/tools/.cache/vcpkg ${VCPKG_DIR}/vcpkg ${VCPKG_DIR}/vcpkg_src_hash
+  fi
+
+cache:
+  directories:
+  - ~/tools/.cache
+
