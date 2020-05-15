@@ -109,8 +109,6 @@ before_install:
 
 install:
 - |
-  brew list --versions | grep "gcc"
-- |
   echo "${TRAVIS_BUILD_STAGE_NAME}"
   echo "${TRAVIS_OS_NAME}"
   echo "${TRAVIS_OSX_IMAGE}"
