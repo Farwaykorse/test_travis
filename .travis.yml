@@ -3,115 +3,171 @@ version: ~> 1.0
 language: cpp
 os: osx
 
-matrix:
+env:
+  global:
+  # vcpkg
+  - VCPKG_DIR:      "$HOME/tools/vcpkg"
+  - TOOLCHAIN_FILE: "$HOME/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+stages:
+- Build Dependencies
+- "Build & Test Latest" # First: (4) builds to run first
+- name: Validation
+- name: "Build & Test"  # If all succeed build rest
+  if: 'NOT (branch =~ /^([Aa]pp[Vv]eyor|cpplint).*/)'
+
+jobs:
   include:
-  - name: baseline
-    before_script: # non-zero exit code: stops build
-    - bash --version 
-    - echo "-- started before_script"
-    - ( exit 0 )
-    - echo "-- after exit 0"
-    - ( true )
-    - echo "-- after true"
-    #- ( exit 1 ) # <--- stops build (trusty)
-    #- echo "-- after exit 1"
-    - ( false ) # <--- stops build (trusty)
-    - echo "-- after false"
-    - echo "-- finish before_script"
-    script: # non-zero exit code: fails build
-    - echo "-- finish script"
-    after_script: # non-zero exit code: no effect
-    - echo "-- full build completed"
+  - name: vcpkg for OSX
+    stage: Build Dependencies
+    workspaces:
+      create:
+        name: OSX
+        paths:
+        - ${VCPKG_DIR}
+    os: osx
+    osx_image: xcode10.3
+    env:
+    - CC:  gcc-9
+    - CXX: g++-9
+    - MACOSX_DEPLOYMENT_TARGET: '10.12' # minimum supported: xcode9 image
+    install: skip
+    before_script: skip
+    script: skip
+    after_script: skip
+    after_success: skip
 
-  - name: baseline exit in script
-    before_script: # non-zero exit code: stops build
-    - bash --version 
-    script: # non-zero exit code: fails build
-    - echo "-- start script"
-    - ( exit 0 )
-    - echo "-- after exit 0"
-    - ( true )
-    - echo "-- after true" # <-- shows error and continues
-    - ( exit 1 )
-    - echo "-- after exit 1" # <-- shows error and continues
-    - ( false )
-    - echo "-- after false"
-    - echo "-- finish script"
-    after_script: # non-zero exit code: no effect
-    - echo "-- full build completed"
+  - name: AppleClang Xcode-10.3
+    stage: "Build & Test"
+    os: osx
+    osx_image: xcode10.3 # AppleClang 10.0.1 same compiler as Xcode10.2
+    env:
+    - CXX_vcpkg: g++-9 # present on xcode10.3
+    - Coverage: grcov
+    workspaces:
+      use: OSX
 
-  - name: blocks_baseline # ignores error inside block
-    before_script: # non-zero exit code: stops build
-    - bash --version 
-    script: # non-zero exit code: fails build
-    - echo "-- start script"
-    - |
-      echo "-- start block"
-      ( exit 0 )
-      echo "-- after exit 0"
-      ( true )
-      echo "-- after true"
-      ( exit 1 )
-      echo "-- after exit 1"
-      ( false )
-      echo "-- after false"
-      echo "-- finish block"
-    - echo "-- finish script"
-    after_script: # non-zero exit code: no effect
-    - echo "-- full build completed"
+  - name: AppleClang Xcode-10.1
+    if: 'branch =~ /^(master|[Tt]ravis.*)$/'
+    os: osx
+    osx_image: xcode10.1 # AppleClang 10.0.0 same compiler as Xcode 10.0
+    workspaces:
+      use: OSX
 
-  - name: blocks_early_errexit # broken
-    before_script: # non-zero exit code: stops build
-    - bash --version
-    - set -e # early errexit: exit 1 stops AND fails build, no error message
-    - echo "-- finish before_script"
-    script: # non-zero exit code: fails build
-    - echo "-- start script"
-    - |
-      # block
-      # set -e # same as early errexit
-      echo "-- start block"
-      ( exit 0 )
-      echo "-- after exit 0"
-      ( true )
-      echo "-- after true"
-      ( exit 1 ) # <-- travis breaks here
-      echo "-- after exit 1"
-      ( false )
-      echo "-- after false"
-      echo "-- finish block"
-    - echo "-- finish script"
-    after_script: # non-zero exit code: no effect
-    - echo "-- full build completed"
+  # Note: can not build vcpkg on Xcode-9.3/4, missing OSX update on Travis.
+  - name: AppleClang Xcode-9.4
+    if: 'branch =~ /^(master|[Tt]ravis.*)$/'
+    os: osx
+    osx_image: xcode9.4 # AppleClang 9.1.0 same compiler as Xcode 9.3
+    workspaces:
+      use: OSX
 
-  - name: blocks_errexit # works correctly
-    before_script: # non-zero exit code: stops build
-    - bash --version
-    - ( set -e ) # is contained, noeffect later on
-    - echo "-- finish before_script"
-    script: # non-zero exit code: fails build
-    - echo "-- start script"
-    - |
-      ( # subshell
-      set -e
-      # block
-      echo "-- start block"
-      ( exit 0 )
-      echo "-- after exit 0"
-      ( true )
-      echo "-- after true"
-      ( exit 1 )
-      echo "-- after exit 1"
-      ( false )
-      echo "-- after false"
-      echo "-- finish block"
-      ) # end subshell
-    - echo "-- finish script"
-    after_script: # non-zero exit code: no effect
-    - echo "start after_script"
-    - |
-      ( exit 1 ) # ignored when set -e in subshell
-      echo "after exit 1"
-    - echo "-- full build completed"
+  # Earliest available with C++17 support
+  - name: AppleClang Xcode-9
+    if: 'branch =~ /^(master|[Tt]ravis.*)$/'
+    os: osx
+    osx_image: xcode9 # AppleClang 9.1.0 same compiler in Xcode 9.0, 9.1 and 9.2
+    workspaces:
+      use: OSX
 
+##====--------------------------------------------------------------------====##
+## Install tools and dependencies
+before_install:
+- |
+  # Helper functions
+  # usage: if [[ $(check_url '<url>') ]]; then ...
+  function check_url {( set +e
+    if [[ "$1" =~ 'github.com' ]]; then # check for first byte
+      if curl --fail --silent --output /dev/null --connect-timeout 12 \
+        --range 0-0 "$1"
+      then echo true; fi
+    else # request head
+      if curl --fail --silent --output /dev/null --connect-timeout 12 \
+        --head "$1"
+      then echo true; fi
+    fi
+    return
+  )}
+- |
+  # Setup
+  mkdir -p ~/tools && cd ~/tools
+  if [[ ${TRAVIS_OS_NAME} == "osx" ]]; then
+    export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+  fi
+  if [[ ${TRAVIS_EVENT_TYPE} == "cron" ]]; then
+    Coverage=""
+  fi
+- |
+  # Temporary fix for image: xcode11 to use GCC.
+  if [[ ${TRAVIS_OSX_IMAGE} == "xcode11" &&
+    ( "${CXX_vcpkg:-}" || ${CXX} == g++-* )
+  ]]; then
+    sudo installer -pkg \
+    /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg\
+    -target /
+  fi
+- |
+  # OSX: set Homebrew gcc to gcc@<version>, to prevent version upgrades
+  if [[ "${TRAVIS_OSX_IMAGE:-}" &&
+    ${TRAVIS_OSX_IMAGE} =~ ^xcode(11(\.[12])?)$
+  ]]; then
+    brew unlink gcc
+    brew link gcc@9
+  fi
+
+install:
+- |
+  # Download vcpkg
+  if [[ "${TRAVIS_BUILD_STAGE_NAME}" =~ .*dependencies$ ]]; then
+  ( set -euo pipefail
+    # Full history clone for rebuild detection.
+    git clone --quiet https://github.com/Microsoft/vcpkg.git ${VCPKG_DIR}
+    mv -f -t ${VCPKG_DIR} ~/tools/.cache/vcpkg/* || echo "No cached files."
+  ); fi
+  export PATH=$PATH:${VCPKG_DIR}
+- |
+  # Install/Update vcpkg
+  if [[ "${TRAVIS_BUILD_STAGE_NAME}" =~ .*dependencies$ ]]; then
+    pushd ${VCPKG_DIR}
+  ( set -euo pipefail
+    VCPKG_SRC_HASH="${VCPKG_DIR}/vcpkg_src_hash" && touch ${VCPKG_SRC_HASH}
+    GENERATE_SRC_HASH="(
+      git log --format=format:\"%H\" --max-count=1 -- toolsrc
+    )"
+    if [[ ! -x "$(command -v vcpkg)" ||
+      ( $(vcpkg update) == 'Warning: Different source'*'for vcpkg'* ) ||
+      ( $(eval ${GENERATE_SRC_HASH}) != $(< ${VCPKG_SRC_HASH}) ) ]]
+    then
+      if [[ ${CC_vcpkg:-} ]];  then eval "CC=${CC_vcpkg}"; fi
+      if [[ ${CXX_vcpkg:-} ]]; then eval "CXX=${CXX_vcpkg}"; fi
+      if [[ ${CXX} == clang* && ${CXX_lib:-} ]]; then
+        export CXXFLAGS="${CXXFLAGS:-} -stdlib=${CXX_lib}"
+      fi
+      if [[ ${TRAVIS_OS_NAME} == "osx" && ${CXX} == g++-* ]]; then
+        export LDFLAGS="${LDFLAGS:-} -static-libstdc++ -static-libgcc"
+      fi
+      ./bootstrap-vcpkg.sh
+      eval ${GENERATE_SRC_HASH} > ${VCPKG_SRC_HASH}
+    fi
+  )
+    popd
+  fi
+
+script:
+- |
+  # Build/install libraries
+  pushd ${VCPKG_DIR}
+  ./vcpkg install ms-gsl
+  ./vcpkg install gtest
+  popd
+- |
+  # Update installed libraries
+  pushd ${VCPKG_DIR}
+  ( set -euo pipefail
+    ./vcpkg update # print potential updates
+    if [[ $(./vcpkg upgrade) != *'installed packages are up-to-date'* ]]
+    then
+      ./vcpkg upgrade --no-dry-run
+    fi
+  ); popd
 
