@@ -120,8 +120,9 @@ install:
     git clone --quiet https://github.com/Microsoft/vcpkg.git ${VCPKG_DIR}
     if [[ "$(grep -s -m 1 'v1\.10\.0/ninja-mac' ~/tools/vcpkg/scripts/vcpkgTools.xml)" ]]
     then
+      pushd "${VCPKG_DIR}"
       git revert 19ef8e31479d8f0d6a469c134080812944f2d7c1
-      echo 'reverted'
+      popd
     fi
     mv -f -t ${VCPKG_DIR} ~/tools/.cache/vcpkg/* || echo "No cached files."
   ); fi
