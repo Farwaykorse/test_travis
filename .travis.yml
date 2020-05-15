@@ -1,7 +1,6 @@
 version: ~> 1.0
 
 language: cpp
-os: osx
 
 env:
   global:
@@ -40,7 +39,6 @@ jobs:
     osx_image: xcode10.3 # AppleClang 10.0.1 same compiler as Xcode10.2
     env:
     - CXX_vcpkg: g++-9 # present on xcode10.3
-    - Coverage: grcov
     workspaces:
       use: OSX
 
@@ -110,6 +108,10 @@ before_install:
   fi
 
 install:
+- |
+  echo "${TRAVIS_BUILD_STAGE_NAME}"
+  echo "${TRAVIS_OS_NAME}"
+  echo "${TRAVIS_OSX_IMAGE}"
 - |
   # Download vcpkg
   if [[ "${TRAVIS_BUILD_STAGE_NAME}" =~ .*dependencies$ ]]; then
