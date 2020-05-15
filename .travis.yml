@@ -56,11 +56,11 @@ jobs:
       use: OSX
 
   # Earliest available with C++17 support
-  - name: AppleClang Xcode-9
-    os: osx
-    osx_image: xcode9 # AppleClang 9.1.0 same compiler in Xcode 9.0, 9.1 and 9.2
-    workspaces:
-      use: OSX
+  #- name: AppleClang Xcode-9
+  #  os: osx
+  #  osx_image: xcode9 # AppleClang 9.1.0 same compiler in Xcode 9.0, 9.1 and 9.2
+  #  workspaces:
+  #    use: OSX
 
 ##====--------------------------------------------------------------------====##
 ## Install tools and dependencies
