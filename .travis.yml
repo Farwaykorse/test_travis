@@ -123,7 +123,7 @@ install:
       pushd "${VCPKG_DIR}"
       git config user.email 'a@example.com'
       git config user.name 'local'
-      git revert 19ef8e31479d8f0d6a469c134080812944f2d7c1
+      git revert --no-edit 19ef8e31479d8f0d6a469c134080812944f2d7c1
       popd
     fi
     mv -f -t ${VCPKG_DIR} ~/tools/.cache/vcpkg/* || echo "No cached files."
