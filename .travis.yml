@@ -168,8 +168,17 @@ script:
       ./vcpkg upgrade --no-dry-run
     fi
   ); popd
-- cat /Users/travis/tools/vcpkg/buildtrees/ms-gsl/config-x64-osx-dbg-out.log
-- cat /Users/travis/tools/vcpkg/buildtrees/ms-gsl/config-x64-osx-dbg-err.log
+- |
+  LOG_PATH='/Users/travis/tools/vcpkg/buildtrees/ms-build/config-x64-osx-dbg-out.log'
+  if [[ -e "${LOG_PATH}" ]]; then
+    cat "${LOG_PATH}"
+  fi
+- |
+  LOG_PATH='/Users/travis/tools/vcpkg/buildtrees/ms-build/config-x64-osx-dbg-err.log'
+  if [[ -e "${LOG_PATH}" ]]; then
+    cat "${LOG_PATH}"
+  fi
+
 
 ##====--------------------------------------------------------------------====##
 before_cache:
